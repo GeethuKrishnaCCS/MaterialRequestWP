@@ -1,0 +1,122 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.materialRequestHOSApprovalForm {
+  overflow: hidden;
+  padding: 1em;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+.welcome {
+  text-align: center;
+}
+
+.welcomeImage {
+  width: 100%;
+  max-width: 420px;
+}
+
+.links {
+  a {
+    text-decoration: none;
+    color: "[theme:link, default:#03787c]";
+    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
+
+    &:hover {
+      text-decoration: underline;
+      color: "[theme:linkHovered, default: #014446]";
+      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+    }
+  }
+}
+
+.MaterialRequestHeading {
+  background-color: "[theme:link, default:#03787c]";
+  color: #fff;
+  padding: 5px;
+  font-size: large;
+  display: flex;
+  margin-bottom: 2em;
+
+}
+
+.onediv {
+  margin-bottom: 30px;
+  // border: 1px solid rgb(255, 255, 255);
+}
+
+.fieldlabel {
+  // border: 1px solid rgb(255, 255, 255);
+  width: 200px;
+  // font-size: 15px;
+}
+
+.colon {
+  // border: 1px solid rgb(255, 255, 255);
+  width: 45px;
+}
+
+.fieldwrapper {
+  // border: 1px solid rgb(255, 255, 255);
+  display: flex;
+  margin-bottom: 12px;
+
+}
+
+.fieldoutput {
+  // border: 1px solid rgb(255, 255, 255);
+  margin: 1px;
+}
+
+.table {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.tablethtddiv {
+  border: 1px solid #000000;
+  border-collapse: collapse;
+  padding: 5px;
+
+}
+
+.btndiv {
+  display: flex;
+  justify-content: flex-end;
+  margin: 21px;
+  gap: 10px;
+  margin-right: 3px;
+
+}
+
+.successStatusMessage {
+  margin-bottom: 20px;
+  color: black; // or any other color you prefer
+  background-color: #28a1288c;
+
+}
+
+.rejectStatusMessage {
+  margin-bottom: 20px;
+  color: black; // or any other color you prefer
+  background-color: #e654798f;
+
+}
+
+.statusMessageIdNull {
+  background-color: #e654798f;
+  color: #000;
+  padding: 7px;
+  font-size: 15px;
+}
+
+.borderBox {
+  // border: 1px solid black;
+  padding: 20px;
+  box-shadow: 0 2.6px 5.6px 0 #8a8a8a, 0 0.3px 0.9px 0 #8a8a8a;
+}

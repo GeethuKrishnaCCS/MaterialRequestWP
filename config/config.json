@@ -1,0 +1,19 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "material-request-wp-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/materialRequestWp/MaterialRequestWpWebPart.js",
+          "manifest": "./src/webparts/materialRequestWp/MaterialRequestWpWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "MaterialRequestWpWebPartStrings": "lib/webparts/materialRequestWp/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+  }
+}

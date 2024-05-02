@@ -1,0 +1,42 @@
+@import '~office-ui-fabric-react/dist/sass/References.scss'; 
+
+.success {
+  min-width: 15em;
+  color: #4caf50;
+  border-radius: 15px;
+  background-color: #ffffff;
+  padding: 1em;
+  margin: 0.7em;
+  border: 3px solid #4caf50;
+  box-shadow: 0 0 0 2px rgb(255 255 255), 0.3em 0.3em 1em rgb(0 0 0 / 30%);
+}
+.info {
+  min-width: 15em;
+  color: #00bcd4;
+  border-radius: 15px;
+  background-color: #ffffff;
+  padding: 1em;
+  margin: 0.7em;
+  border: 3px solid #00bcd4;
+  box-shadow: 0 0 0 2px rgb(255 255 255), 0.3em 0.3em 1em rgb(0 0 0 / 30%);
+}
+.warning {
+  min-width: 15em;
+  color: #ff9800;
+  border-radius: 15px;
+  background-color: #ffffff;
+  padding: 1em;
+  margin: 0.7em;
+  border: 3px solid #ff9800;
+  box-shadow: 0 0 0 2px rgb(255 255 255), 0.3em 0.3em 1em rgb(0 0 0 / 30%);
+}
+.error {
+  min-width: 15em;
+  color: #ff9800;
+  border-radius: 15px;
+  background-color: #ffffff;
+  padding: 1em;
+  margin: 0.7em;
+  border: 3px solid #ff9800;
+  box-shadow: 0 0 0 2px rgb(255 255 255), 0.3em 0.3em 1em rgb(0 0 0 / 30%);
+}

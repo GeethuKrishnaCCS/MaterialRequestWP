@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "material-request-client-side-solution",
+    "id": "25a8582a-97b0-461e-bdbd-dd2690c8a654",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.17.3"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "MaterialRequest description"
+      },
+      "longDescription": {
+        "default": "MaterialRequest description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "material-request Feature",
+        "description": "The feature that activates elements of the material-request solution.",
+        "id": "a9e37893-7998-474c-bcef-66ab98b5787d",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/material-request.sppkg"
+  }
+}

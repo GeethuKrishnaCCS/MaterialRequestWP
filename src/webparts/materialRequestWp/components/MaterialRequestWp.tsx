@@ -3,14 +3,14 @@ import styles from './MaterialRequestWp.module.scss';
 import { IMaterialRequestWpProps, IMaterialRequestWpState } from '../interfaces/IMaterialRequestWpProps';
 import { DefaultButton, Dropdown, FocusTrapZone, IDropdownOption, IIconProps, IconButton, Label, Layer, Overlay, Popup, PrimaryButton, TextField } from '@fluentui/react';
 import { MaterialRequestWpService } from '../services';
-// import { escape } from '@microsoft/sp-lodash-subset';
 import * as moment from 'moment';
 import { MSGraphClientV3 } from '@microsoft/sp-http';
 import MaterialRequestAdminApprovalForm from './MaterialRequestAdminApprovalForm';
 import MaterialRequestHOSApprovalForm from './MaterialRequestHOSApprovalForm';
 import MaterialRequestViewTable from './MaterialRequestViewTable';
 import Toast from './Toast';
-// import MaterialRequestViewTable from './MaterialRequestViewTable';
+import * as strings from 'MaterialRequestWpWebPartStrings';
+import replaceString from 'replace-string';
 
 export default class MaterialRequestWp extends React.Component<IMaterialRequestWpProps, IMaterialRequestWpState, {}> {
   private _service: any;
@@ -49,7 +49,6 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
       statusMessage: '',
       MasterMaterialRequestId: null,
       taskListItemId: null,
-      // isLoading: false,
       isOkButtonDisabled: false,
       selectedMaterials: [],
       materialSelectionError: '',
@@ -77,6 +76,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     this.onClickCancel = this.onClickCancel.bind(this);
     this.firstRowChecking = this.firstRowChecking.bind(this);
 
+
   }
 
 
@@ -88,8 +88,9 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     this.UserProfiles();
     this.getDepartmentsList();
     this.getAdminApprover();
-    // const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    // console.log('url: ', url);
+    console.log("absoluteurl", this.props.context.pageContext.web.absoluteUrl);
+    console.log("serverurl", this.props.context.pageContext.web.serverRelativeUrl);
+
   }
 
   public getCurrentDate() {
@@ -101,10 +102,10 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     console.log('getcurrentuser: ', getcurrentuser);
   }
 
+
   public UserProfiles() {
     const url: string = this.props.context.pageContext.web.serverRelativeUrl
     const getUsers: string = url + `/_api/SP.UserProfiles.PeopleManager/GetMyProperties`;
-    // console.log('getUsers: ', getUsers);
     fetch(getUsers, {
       headers: {
         'Accept': 'application/json;odata=nometadata',
@@ -114,16 +115,9 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     })
       .then(response => response.json())
       .then(data => {
-        console.log('data: ', data);
-        // this.setState({ userProfileData: data });
-
         this.setState({
-          //   displayName: data.DisplayName,
-          //   mail: data.Email,
-          //   photoUrl: data.PictureUrl,
           department: data.UserProfileProperties.filter((p: any) => p.Key === 'Department')[0].Value,
         });
-
       })
       .catch(error => {
         console.error('Error:', error);
@@ -132,7 +126,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
 
   public async getClientList() {
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const listClient = await this._service.getClientListItems("ClientList", url)
+    const listClient = await this._service.getClientListItems(this.props.ClientList, url)
     this.setState({ listClient: listClient })
 
     const ClientList: any[] = [];
@@ -144,11 +138,8 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
 
   public getProgramList = async (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption) => {
     this.setState({ selectedClient: item });
-    // console.log('selectedClient: ', this.state.selectedClient);
-
-    // console.log('this.state.selectedClient.key: ', this.state.selectedClient.key);
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const listProgram = await this._service.getProgramListItems("ProgramList", item.key, url)
+    const listProgram = await this._service.getProgramListItems(this.props.ProgramList, item.key, url)
     this.setState({ listProgram: listProgram })
 
     const Program: any[] = [];
@@ -162,7 +153,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     this.setState({ selectedProgram: data });
 
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const listProject = await this._service.getProjectListItems("ProjectList", data.key, url)
+    const listProject = await this._service.getProjectListItems(this.props.ProjectList, data.key, url)
     this.setState({ listProject: listProject })
 
     const ProjectList: any[] = [];
@@ -182,7 +173,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
 
   public async getMaterialListItem() {
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const listMaterial = await this._service.getClientListItems("MaterialsMasterList", url)
+    const listMaterial = await this._service.getClientListItems(this.props.MaterialsMasterList, url)
     this.setState({ listMaterial: listMaterial })
 
     const MaterialList: any[] = [];
@@ -192,41 +183,9 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
     this.setState({ material: MaterialList });
   }
 
-
-  // public onMaterialChange(event: React.FormEvent<HTMLDivElement>, getMaterial: IDropdownOption) {
-  //   this.setState({ getMaterial: getMaterial }, this.checkQuantityEntered);
-  // }
-
-  
-
-  // public onMaterialChange = (event: React.FormEvent<HTMLDivElement>, getMaterial: IDropdownOption) => {
-  //   const { selectedMaterials } = this.state;
-
-  //   if (selectedMaterials.some((material: any) => material.key === getMaterial.key)) {
-  //     this.setState({
-  //       materialSelectionError: 'Material already selected!',
-  //       getMaterial: { key: "", text: "" },
-  //     });
-  //   } else {
-  //     this.setState({
-  //       getMaterial,
-  //       materialSelectionError: '',
-  //     }, this.checkQuantityEntered);
-  //   }
-  // }
-
-  // public onChangeQuantity = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, quantity: string) => {
-  //   const isNumber = /^\d+$/.test(quantity); // Check if the input is a number
-  //   if (!isNumber && quantity !== '') {
-  //     this.setState({ quantityError: 'Please enter a valid number', isQuantityEntered: false });
-  //   } else {
-  //     this.setState({ quantity, quantityError: '' }, this.checkQuantityEntered);
-  //   }
-  // }
-
   public onMaterialChange = (event: React.FormEvent<HTMLDivElement>, getMaterial: IDropdownOption) => {
     const { selectedMaterials } = this.state;
-  
+
     if (selectedMaterials.some((material: any) => material.key === getMaterial.key)) {
       this.setState({
         materialSelectionError: 'Material already selected!',
@@ -242,9 +201,9 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
       });
     }
   }
-  
+
   public onChangeQuantity = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, quantity: string) => {
-    const isNumber = /^\d+$/.test(quantity); // Check if the input is a number
+    const isNumber = /^\d+$/.test(quantity);
     if (!isNumber && quantity !== '') {
       this.setState({ quantityError: 'Please enter a valid number', isQuantityEntered: false });
     } else {
@@ -254,8 +213,6 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
       });
     }
   }
-  
-
   public checkQuantityEntered = () => {
     const isMaterialSelected = this.state.getMaterial && this.state.getMaterial.key !== "";
     const isQuantityEntered = this.state.quantity !== "" && this.state.quantityError === "";
@@ -274,13 +231,10 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
 
   public async getDepartmentsList() {
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const DepartmentslistItem = await this._service.getListItems("Departments", url)
-    // console.log('DepartmentslistItem: ', DepartmentslistItem);
+    const DepartmentslistItem = await this._service.getListItems(this.props.Departments, url)
     this.setState({ Departmentslist: DepartmentslistItem });
 
-    // const Departmentslist: any[] = [];
     DepartmentslistItem.map((Item: any) => {
-      // console.log('Item: ', Item);
       const departmentName = Item.Title;
       const HOSName = Item.HOSNameId;
 
@@ -289,29 +243,14 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
         HOSName: HOSName,
       });
     })
-    // console.log('Departmentslist: ', this.state.Departmentslist);
   }
 
   public async getAdminApprover() {
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    const AdminApproverlistItem = await this._service.getListItems("AdminApprover", url)
+    const AdminApproverlistItem = await this._service.getListItems(this.props.AdminApprover, url)
     const ApproverIdUserInfo = await this._service.getUser(AdminApproverlistItem[0].AdminApproverId);
-    // const AdminApprover = ApproverIdUserInfo.Title; 
     this.setState({ adminApproverName: ApproverIdUserInfo.Id });
   }
-
-  // public addRow() {
-  //   const { getMaterial, quantity } = this.state;
-  //   const newRow = { getMaterial, quantity };
-  //   const rows = [...this.state.rows, newRow];
-
-  //   this.setState({
-  //     rows,
-  //     getMaterial: { key: "", text: "" },
-  //     quantity: "",
-  //     isQuantityEntered: false,
-  //   });
-  // }
 
 
   public addRow() {
@@ -329,22 +268,12 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
   }
 
 
-
-  // public deleteRow(index: number) {
-  //   const rows = [...this.state.rows];
-  //   rows.splice(index, 1);
-  //   this.setState({ rows });
-  // }
-
   public deleteRow(index: number) {
     const rows = [...this.state.rows];
     const deletedRow = rows[index];
-
-    // Remove the deleted material from selectedMaterials
     const updatedSelectedMaterials = this.state.selectedMaterials.filter(
       (material: any) => material.key !== deletedRow.getMaterial.key
     );
-
     rows.splice(index, 1);
     this.setState({ rows, selectedMaterials: updatedSelectedMaterials });
   }
@@ -353,48 +282,35 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
   public async onSubmitClick(): Promise<void> {
     this.setState({
       isPopupVisible: true,
-      //  isLoading: true
     });
   }
 
   public async onPopOk(): Promise<void> {
     await this.setState({ isOkButtonDisabled: true });
     const filteredDepartment = this.state.Departmentslist.find((dept: any) => dept.Title === this.state.department);
-    // console.log('this.state.department: ', this.state.department);
 
     if (filteredDepartment) {
       const HOSName = filteredDepartment.HOSNameId;
 
       const dataItem = {
-        //  MaterialRequestCode: ,
         ClientId: this.state.selectedClient.key,
         ProgramId: this.state.selectedProgram.key,
         ProjectId: this.state.getProject.key,
         RequestorComments: this.state.comment,
-        // HOSApprovalComments
-        Status: "Pending",
-        // AdminComments
+        Status: strings.Pending,
         HOSApproverId: HOSName,
         AdminApproverId: this.state.adminApproverName,
-        // HOSApprovedDate
-        // AdminApprovedDate
-        // Created: this.state.currentDate,
-        // Author
       };
 
       const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-      await this._service.addMaterialRequestForm(dataItem, "MasterMaterialRequestList", url).then(async (item: any) => {
-        console.log('item: ', item);
-
-        // const taskURL = url + "/SitePages/" + "MaterialRequestApprovalForm" + ".aspx?did=" + item.data.Id + "&formType=HOSApproval";
-        // console.log('taskURL: ', taskURL);
+      await this._service.addMaterialRequestForm(dataItem, this.props.MasterMaterialRequestList, url).then(async (item: any) => {
 
         const itemId = item.data.Id;
         this.setState({ MasterMaterialRequestId: itemId });
         const dataItem = {
           MaterialRequestCode: "00" + itemId
         }
-        await this._service.updateMaterialRequestForm("MasterMaterialRequestList", dataItem, itemId, url);
+        await this._service.updateMaterialRequestForm(this.props.MasterMaterialRequestList, dataItem, itemId, url);
 
         const materialItemsData = this.state.rows.map(row => ({
           MasterMaterialRequestIDId: itemId,
@@ -403,7 +319,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
         }));
 
         for (const materialItemData of materialItemsData) {
-          await this._service.addMaterialRequestForm(materialItemData, "MaterialItemsList", url);
+          await this._service.addMaterialRequestForm(materialItemData, this.props.MaterialItemsList, url);
         }
 
         if (!this.state.rows.some(row => row.getMaterial.key === this.state.getMaterial.key) && this.state.getMaterial.key && this.state.quantity) {
@@ -412,18 +328,15 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
             MaterialsIDId: this.state.getMaterial.key,
             Quantity: this.state.quantity,
           };
-          await this._service.addMaterialRequestForm(lastMaterialItemData, "MaterialItemsList", url);
+          await this._service.addMaterialRequestForm(lastMaterialItemData, this.props.MaterialItemsList, url);
         }
 
         const taskItem = {
           MasterMaterialRequestIDId: itemId,
           AssignedToId: HOSName,
-          // TaskTitleWithLink: {
-          //   Description: "-- HOS Approval",
-          //   Url: taskURL,
-          // }
+
         }
-        await this._service.addMaterialRequestForm(taskItem, "TasksList", url).then(async (task: any) => {
+        await this._service.addMaterialRequestForm(taskItem, this.props.TasksList, url).then(async (task: any) => {
 
           this.setState({ taskListItemId: task.data.Id });
           const taskURL = url + "/SitePages/" + "MaterialRequestApprovalForm" + ".aspx?did=" + item.data.Id + "&itemid=" + task.data.Id + "&formType=HOSApproval";
@@ -433,14 +346,12 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
               Url: taskURL,
             }
           }
-          await this._service.updateMaterialRequestForm("TasksList", taskItemtoupdate, task.data.Id, url);
+          await this._service.updateMaterialRequestForm(this.props.TasksList, taskItemtoupdate, task.data.Id, url);
 
 
           await this.sendEmailNotificationToHOS(this.props.context);
 
           this.hidePopup();
-
-          // this.setState({ statusMessage: 'Successfully applied' });
           Toast("success", "Successfully Submitted");
           setTimeout(() => {
             window.location.href = url;
@@ -459,47 +370,61 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
       const hosApproverId = filteredDepartment.HOSNameId;
       const hosApproverIdUserInfo = await this._service.getUser(hosApproverId);
       const HOSApproverEmail = hosApproverIdUserInfo.Email;
-      const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-      const evaluationURL = "https://ccsdev01.sharepoint.com/" + url + "/SitePages/" + "MaterialRequestApprovalForm" + ".aspx?did=" + this.state.MasterMaterialRequestId + "&itemid=" + this.state.taskListItemId + "&formType=HOSApproval";
+      const HOSApprover = hosApproverIdUserInfo.Title;
+      const url: string = this.props.context.pageContext.web.absoluteUrl;
+      const evaluationURL = url + "/SitePages/" + "MaterialRequestApprovalForm" + ".aspx?did=" + this.state.MasterMaterialRequestId + "&itemid=" + this.state.taskListItemId + "&formType=HOSApproval";
 
-      // Get the Project Name
       const project = this.state.project.find((proj: any) => proj.key === this.state.getProject.key)?.text || 'Project';
 
-      // Get the Employee Name
       const getcurrentuser = await this._service.getCurrentUser();
       const getcurrentUserInfo = await this._service.getUser(getcurrentuser.Id);
       const employeeName = getcurrentUserInfo.Title;
 
-      // Get the Requested Date
       const requestedDate = this.state.currentDate;
 
-      const emailPostBody: any = {
-        message: {
-          subject: `Material Request for ${project}`,
-          body: {
-            contentType: 'HTML',
-            content: `Hi ${hosApproverIdUserInfo.Title},<br><br>
-            ${employeeName} has submitted a material request for the ${project} on ${requestedDate}.<br>
-            Please click on the<a href="${evaluationURL}" target="_blank">link</a> to review the details and kindly approve the request at your earliest convenience.<br><br>
-            `
-          },
-          toRecipients: [
-            {
-              emailAddress: {
-                address: HOSApproverEmail,
-              },
-            },
-          ],
-        },
-      };
+      const serverurl: string = this.props.context.pageContext.web.serverRelativeUrl;
+      const emailNoficationSettings = await this._service.getListItems(this.props.MaterialRequestSettingsList, serverurl);
+      const emailNotificationSetting = emailNoficationSettings.find((item: any) => item.Title === "SendEmailNotificationToHOS");
 
-      return context.msGraphClientFactory
-        .getClient('3')
-        .then((client: MSGraphClientV3): void => {
-          client.api('/me/sendMail').post(emailPostBody);
-        });
+      if (emailNotificationSetting) {
+        const subjectTemplate = emailNotificationSetting.Subject;
+        const bodyTemplate = emailNotificationSetting.Body;
+
+        const replaceSubject = replaceString(subjectTemplate, '[Project]', project )
+
+
+        const replaceHOSApprover = replaceString (bodyTemplate , '[HOSApprover]', HOSApprover )
+        const replaceEmployyeName = replaceString (replaceHOSApprover , '[EmployeeName]', employeeName )
+        const replaceProject = replaceString (replaceEmployyeName , '[Project]', project )
+        const replaceRequestedDate = replaceString (replaceProject , '[RequestedDate]', requestedDate )   
+        const replacedBodyWithLink = replaceString(replaceRequestedDate, '[Link]', `<a href="${evaluationURL}" target="_blank">Click here</a>`);
+
+        const emailPostBody: any = {
+          message: {
+            subject: replaceSubject,
+            body: {
+              contentType: 'HTML',
+              content: replacedBodyWithLink
+            },
+            toRecipients: [
+              {
+                emailAddress: {
+                  address: HOSApproverEmail,
+                },
+              },
+            ],
+          },
+        };
+
+        return context.msGraphClientFactory
+          .getClient('3')
+          .then((client: MSGraphClientV3): void => {
+            client.api('/me/sendMail').post(emailPostBody);
+          });
+      }
     }
   }
+
 
 
   public hidePopup = () => {
@@ -516,8 +441,8 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
   public render(): React.ReactElement<IMaterialRequestWpProps> {
     const currentUrl = window.location.href;
 
-    if (currentUrl === 'https://ccsdev01.sharepoint.com/sites/MaterialRequest/SitePages/ViewSubmittedRequests.aspx?debug=true&noredir=true&debugManifestsFile=https%3A%2F%2Flocalhost%3A4321%2Ftemp%2Fmanifests.js') {
-      // if (currentUrl === 'https://ccsdev01.sharepoint.com/sites/MaterialRequest/SitePages/ViewSubmittedRequests.aspx') {
+    // if (currentUrl === 'https://ccsdev01.sharepoint.com/sites/MaterialRequest/SitePages/ViewSubmittedRequests.aspx?debug=true&noredir=true&debugManifestsFile=https%3A%2F%2Flocalhost%3A4321%2Ftemp%2Fmanifests.js') {
+    if (currentUrl === 'https://ccsdev01.sharepoint.com/sites/MaterialRequest/SitePages/ViewSubmittedRequests.aspx') {
       return <MaterialRequestViewTable
         description={''}
         isDarkTheme={false}
@@ -525,6 +450,16 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
         hasTeamsContext={false}
         userDisplayName={''}
         context={this.props.context}
+        AdminApprover={''}
+        ClientList={''}
+        Departments={''}
+        MasterMaterialRequestList={''}
+        MaterialItemsList={''}
+        MaterialsMasterList={''}
+        ProgramList={''}
+        ProjectList={''}
+        TasksList={''}
+        MaterialRequestSettingsList={''}
       />;
     }
 
@@ -537,8 +472,19 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
         hasTeamsContext={false}
         userDisplayName={''}
         context={this.props.context}
+        AdminApprover={''}
+        ClientList={''}
+        Departments={''}
+        MasterMaterialRequestList={''}
+        MaterialItemsList={''}
+        MaterialsMasterList={''}
+        ProgramList={''}
+        ProjectList={''}
+        TasksList={''}
+        MaterialRequestSettingsList={''}
       />;
-    } else if (new URLSearchParams(window.location.search).get("formType") === "AdminApproval") {
+    }
+    else if (new URLSearchParams(window.location.search).get("formType") === "AdminApproval") {
       return <MaterialRequestAdminApprovalForm
         description={''}
         isDarkTheme={false}
@@ -546,6 +492,16 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
         hasTeamsContext={false}
         userDisplayName={''}
         context={this.props.context}
+        AdminApprover={''}
+        ClientList={''}
+        Departments={''}
+        MasterMaterialRequestList={''}
+        MaterialItemsList={''}
+        MaterialsMasterList={''}
+        ProgramList={''}
+        ProjectList={''}
+        TasksList={''}
+        MaterialRequestSettingsList={''}
       />;
     }
     else {
@@ -566,7 +522,6 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
             <div className={styles.onediv}>
 
               <div className={styles.fieldWrapper}>
-                {/* <label className={styles.fieldLabel}>Request Date</label> */}
                 <Label className={styles.fieldLabel} required={true} >Request Date</Label>
                 <TextField
                   className={styles.fieldInput}
@@ -723,7 +678,7 @@ export default class MaterialRequestWp extends React.Component<IMaterialRequestW
                   !this.state.getProject.key ||
                   !this.state.isFirstRowSelected
                 }
-                
+
               />
 
               <DefaultButton

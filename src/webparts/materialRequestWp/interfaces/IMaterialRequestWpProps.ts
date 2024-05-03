@@ -8,9 +8,30 @@ export interface IMaterialRequestWpProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   context: WebPartContext;
+
+  AdminApprover : string;
+  ClientList : string;
+  Departments : string;
+  MasterMaterialRequestList : string;
+  MaterialItemsList : string;
+  MaterialsMasterList : string;
+  ProgramList : string;
+  ProjectList : string;
+  TasksList : string;
+  MaterialRequestSettingsList : string;
 }
 export interface IMaterialRequestWpWebPartProps {
   description: string;
+  AdminApprover : string;
+  ClientList : string;
+  Departments : string;
+  MasterMaterialRequestList : string;
+  MaterialItemsList : string;
+  MaterialsMasterList : string;
+  ProgramList : string;
+  ProjectList : string;
+  TasksList : string;
+  MaterialRequestSettingsList : string;
 }
 
 export interface IMaterialRequestWpState {

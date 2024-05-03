@@ -30,6 +30,16 @@ export default class MaterialRequestWpWebPart extends BaseClientSideWebPart<IMat
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
         userDisplayName: this.context.pageContext.user.displayName,
         context: this.context,
+        AdminApprover: this.properties.AdminApprover,
+        ClientList: this.properties.ClientList,
+        Departments: this.properties.Departments,
+        MasterMaterialRequestList: this.properties.MasterMaterialRequestList,
+        MaterialItemsList: this.properties.MaterialItemsList,
+        MaterialsMasterList: this.properties.MaterialsMasterList,
+        ProgramList: this.properties.ProgramList,
+        ProjectList: this.properties.ProjectList,
+        TasksList: this.properties.TasksList,
+        MaterialRequestSettingsList: this.properties.MaterialRequestSettingsList,
       },
       MaterialMaterialRequestHOSApprovalForm,
       {
@@ -39,6 +49,16 @@ export default class MaterialRequestWpWebPart extends BaseClientSideWebPart<IMat
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
         userDisplayName: this.context.pageContext.user.displayName,
         context: this.context,
+        AdminApprover: this.properties.AdminApprover,
+        ClientList: this.properties.ClientList,
+        Departments: this.properties.Departments,
+        MasterMaterialRequestList: this.properties.MasterMaterialRequestList,
+        MaterialItemsList: this.properties.MaterialItemsList,
+        MaterialsMasterList: this.properties.MaterialsMasterList,
+        ProgramList: this.properties.ProgramList,
+        ProjectList: this.properties.ProjectList,
+        TasksList: this.properties.TasksList,
+        MaterialRequestSettingsList: this.properties.MaterialRequestSettingsList,
       }
     );
 
@@ -118,7 +138,38 @@ export default class MaterialRequestWpWebPart extends BaseClientSideWebPart<IMat
               groupFields: [
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
-                })
+                }),
+                PropertyPaneTextField('AdminApprover', {
+                  label: strings.AdminApprover
+                }),
+                PropertyPaneTextField('ClientList', {
+                  label: strings.ClientList
+                }),
+                PropertyPaneTextField('Departments', {
+                  label: strings.Departments
+                }),
+                PropertyPaneTextField('MasterMaterialRequestList', {
+                  label: strings.MasterMaterialRequestList
+                }),
+                PropertyPaneTextField('MaterialItemsList', {
+                  label: strings.MaterialItemsList
+                }),
+                PropertyPaneTextField('MaterialsMasterList', {
+                  label: strings.MaterialsMasterList
+                }),
+                PropertyPaneTextField('ProgramList', {
+                  label: strings.ProgramList
+                }),
+                PropertyPaneTextField('ProjectList', {
+                  label: strings.ProjectList
+                }),
+                PropertyPaneTextField('TasksList', {
+                  label: strings.TasksList
+                }),
+                PropertyPaneTextField('MaterialRequestSettingsList', {
+                  label: strings.MaterialRequestSettingsList
+                }),
+
               ]
             }
           ]

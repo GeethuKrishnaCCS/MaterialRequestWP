@@ -6,6 +6,8 @@ import * as moment from 'moment';
 import { MessageBar, MessageBarType, PrimaryButton, TextField } from '@fluentui/react';
 import { MSGraphClientV3 } from '@microsoft/sp-http';
 import Toast from './Toast';
+import * as strings from 'MaterialRequestWpWebPartStrings';
+import replaceString from 'replace-string';
 
 export default class MaterialRequestAdminApprovalForm extends React.Component<IMaterialRequestAdminApprovalFormProps, IMaterialRequestAdminApprovalFormState, {}> {
   private _service: any;
@@ -41,12 +43,12 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     this.getMasterMaterialRequestListData = this.getMasterMaterialRequestListData.bind(this);
     this.getmaterialList = this.getmaterialList.bind(this);
     this.onChangeComment = this.onChangeComment.bind(this);
-    this.sendApprovedEmailNotificationToHOS = this.sendApprovedEmailNotificationToHOS.bind(this);
-    this.sendApprovedEmailNotificationToRequestor = this.sendApprovedEmailNotificationToRequestor.bind(this);
+    this.sendApprovedEmailNotificationToHOSFromAdmin = this.sendApprovedEmailNotificationToHOSFromAdmin.bind(this);
+    this.sendApprovedEmailNotificationToRequestorFromAdmin = this.sendApprovedEmailNotificationToRequestorFromAdmin.bind(this);
     this.deleteTaskListItem = this.deleteTaskListItem.bind(this);
     this.OnClickApprove = this.OnClickApprove.bind(this);
-    this.sendRejectEmailNotificationToHOS = this.sendRejectEmailNotificationToHOS.bind(this);
-    this.sendRejectEmailNotificationToRequestor = this.sendRejectEmailNotificationToRequestor.bind(this);
+    this.sendRejectEmailNotificationToHOSFromAdmin = this.sendRejectEmailNotificationToHOSFromAdmin.bind(this);
+    this.sendRejectEmailNotificationToRequestorFromAdmin = this.sendRejectEmailNotificationToRequestorFromAdmin.bind(this);
     this.OnClickReject = this.OnClickReject.bind(this);
     this.getTaskList = this.getTaskList.bind(this);
     this.checkAdmin = this.checkAdmin.bind(this);
@@ -70,18 +72,13 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
   public async getCurrentUser() {
     const getcurrentuser = await this._service.getCurrentUser();
     this.setState({ getcurrentuserId: getcurrentuser.Id });
-    // console.log('getcurrentuser: ', getcurrentuser);
-
-
   }
 
   public checkAdmin() {
-    console.log("AdminApproverId : ", this.state.materialRequestData.AdminApproverId);
-    console.log("getcurrentuserId : ", this.state.getcurrentuserId);
     if (this.state.getcurrentuserId !== this.state.materialRequestData.AdminApproverId) {
       this.setState({
         noAccessId: "false",
-        statusMessageTAskIdNull: 'Access Denied!'
+        statusMessageTAskIdNull: strings.AccessDenied
       });
     } else {
       this.setState({ noAccessId: "true" });
@@ -90,12 +87,10 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
 
   public async getTaskList() {
     const taskItemid = new URLSearchParams(window.location.search).get('itemid');
-    // console.log('taskItemid: ', taskItemid);
-
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
     const taskListData: any[] = await this._service.getItemSelectExpandFilter(
       url,
-      "TasksList",
+      this.props.TasksList,
       "ID, TaskTitleWithLink, MasterMaterialRequestID/ID",
       "MasterMaterialRequestID",
       `ID eq ${taskItemid}`
@@ -104,7 +99,7 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     if (taskListData.length === 0) {
       this.setState({
         isTaskIdPresent: "false",
-        statusMessageTAskIdNull: 'Already checked the request'
+        statusMessageTAskIdNull: strings.Alreadycheckedtherequest
       });
     } else {
       this.setState({ isTaskIdPresent: "true" });
@@ -115,13 +110,11 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
     const itemId = new URLSearchParams(window.location.search).get('did');
     this.setState({ getItemId: itemId });
-    const materialRequestData = await this._service.getItemById(url, "MasterMaterialRequestList", itemId);
+    const materialRequestData = await this._service.getItemById(url, this.props.MasterMaterialRequestList, itemId);
     this.setState({ materialRequestData: materialRequestData });
-    console.log('materialRequestData: ', this.state.materialRequestData);
 
     const requestedBy = await this._service.getUser(this.state.materialRequestData.AuthorId);
     const RequestedBy = requestedBy.Title;
-
 
     const approvedBy = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
     const ApprovedBy = approvedBy.Title;
@@ -129,9 +122,9 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     const date = this.state.materialRequestData.Created
     const dateformatted = moment(date).format("DD-MM-YYYY");
 
-    const clientListData = await this._service.getItemById(url, "ClientList", this.state.materialRequestData.ClientId);
-    const programListData = await this._service.getItemById(url, "ProgramList", this.state.materialRequestData.ProgramId);
-    const projectListData = await this._service.getItemById(url, "ProjectList", this.state.materialRequestData.ProjectId);
+    const clientListData = await this._service.getItemById(url, this.props.ClientList, this.state.materialRequestData.ClientId);
+    const programListData = await this._service.getItemById(url, this.props.ProgramList, this.state.materialRequestData.ProgramId);
+    const projectListData = await this._service.getItemById(url, this.props.ProjectList, this.state.materialRequestData.ProjectId);
 
     const materialItemId = this.state.materialRequestData.Id
     const RequestorComments = this.state.materialRequestData.RequestorComments
@@ -155,18 +148,14 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
     const MaterialListData = await this._service.getItemSelectExpandFilter(
       url,
-      "MaterialItemsList",
+      this.props.MaterialItemsList,
       "MasterMaterialRequestID/ID,MasterMaterialRequestID/Title,MaterialsID/ID,MaterialsID/Title,Quantity",
       "MasterMaterialRequestID, MaterialsID",
       `MasterMaterialRequestID/ID eq ${this.state.materialRequestDataId}`
 
     );
-    console.log('MaterialListData: ', MaterialListData);
-
     const materialDataArray: any[] = [];
     MaterialListData.map((material: any) => {
-      console.log('material: ', material);
-
       const MaterialId = material.MaterialsID.ID;
       const MaterialQuantity = material.Quantity;
 
@@ -180,167 +169,201 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
       materialDataArray: materialDataArray,
     });
 
-    console.log('materialDataArray: ', this.state.materialDataArray);
-
     const getmasterMaterials = materialDataArray.map(async (item) => {
-      const MaterialMasterListData = await this._service.getItemById(url, "MaterialsMasterList", item.materialId);
+      const MaterialMasterListData = await this._service.getItemById(url, this.props.MaterialsMasterList, item.materialId);
       return MaterialMasterListData.Materials;
     });
 
     const masterMaterials = await Promise.all(getmasterMaterials);
-    console.log('masterMaterials: ', masterMaterials);
 
     this.setState({
       masterMaterial: masterMaterials,
     });
   }
 
-  public async sendApprovedEmailNotificationToHOS(context: any): Promise<void> {
+  public async sendApprovedEmailNotificationToHOSFromAdmin(context: any): Promise<void> {
     const HOSApproverIdUserInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
     const HOSApproverEmail = HOSApproverIdUserInfo.Email;
-
     const date = moment(new Date).format("DD-MM-YYYY");
 
-    // const requestedBy = await this._service.getUser(this.state.materialRequestData.AuthorId);
-    // const requestedEmail = requestedBy.Email;
+    const serverurl: string = this.props.context.pageContext.web.serverRelativeUrl;
+    const emailNoficationSettings = await this._service.getListItems(this.props.MaterialRequestSettingsList, serverurl);
+    const emailNotificationSetting = emailNoficationSettings.find((item: any) => item.Title === "SendApprovedEmailNotificationToHOSFromAdmin");
 
-    // const evaluationURL = 'https://ccsdev01.sharepoint.com/sites/SuggestionBox/SitePages/EvaluationBoard.aspx';
-    const emailPostBody: any = {
-      message: {
-        subject: `Material Request for ${this.state.project}`,
-        body: {
-          contentType: 'HTML',
-          content: `Hi ${HOSApproverIdUserInfo.Title},<br><br>
-          Material request for the ${this.state.project} has been approved by ${this.state.ApprovedBy} on ${date}.<br><br>
-          `
-        },
-        toRecipients: [
-          {
-            emailAddress: {
-              address: HOSApproverEmail,
-            },
+    if (emailNotificationSetting) {
+      const subjectTemplate = emailNotificationSetting.Subject;
+      const bodyTemplate = emailNotificationSetting.Body;
+
+      const replaceSubject = replaceString(subjectTemplate, '[Project]', this.state.project)
+
+      const replaceHOSApprover = replaceString(bodyTemplate, '[HOSApprover]', HOSApproverIdUserInfo.Title)
+      const replaceProject = replaceString(replaceHOSApprover, '[Project]', this.state.project)
+      const replaceApprovedBy = replaceString(replaceProject, '[ApprovedBy]', this.state.ApprovedBy)
+      const replacedate = replaceString(replaceApprovedBy, '[Date]', date)
+
+
+      const emailPostBody: any = {
+        message: {
+          subject: replaceSubject,
+          body: {
+            contentType: 'HTML',
+            content: replacedate
           },
-        ]
-      },
-    };
-    return context.msGraphClientFactory
-      .getClient('3')
-      .then((client: MSGraphClientV3): void => {
-        client.api('/me/sendMail').post(emailPostBody);
-      });
-
+          toRecipients: [
+            {
+              emailAddress: {
+                address: HOSApproverEmail,
+              },
+            },
+          ]
+        },
+      };
+      return context.msGraphClientFactory
+        .getClient('3')
+        .then((client: MSGraphClientV3): void => {
+          client.api('/me/sendMail').post(emailPostBody);
+        });
+    }
   }
 
-  public async sendApprovedEmailNotificationToRequestor(context: any): Promise<void> {
-    // const HOSApproverIdUserInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
-    // const HOSApproverEmail = HOSApproverIdUserInfo.Email;
-
+  public async sendApprovedEmailNotificationToRequestorFromAdmin(context: any): Promise<void> {
     const requestedBy = await this._service.getUser(this.state.materialRequestData.AuthorId);
     const requestedEmail = requestedBy.Email;
 
     const date = moment(new Date).format("DD-MM-YYYY");
 
-    const HOSInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
-    const HOSName = HOSInfo.Title;
+    // const HOSInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
+    // const HOSName = HOSInfo.Title;
 
-    // const evaluationURL = 'https://ccsdev01.sharepoint.com/sites/SuggestionBox/SitePages/EvaluationBoard.aspx';
-    const emailPostBody: any = {
-      message: {
-        subject: `Material Request for ${this.state.project}`,
-        body: {
-          contentType: 'HTML',
-          content: `Hi ${this.state.RequestedBy},<br><br>
-          Material request for the ${this.state.project} has been approved by ${HOSName} on ${date}.<br><br>
-          `
-        },
-        toRecipients: [
-          {
-            emailAddress: {
-              address: requestedEmail,
-            },
+    const serverurl: string = this.props.context.pageContext.web.serverRelativeUrl;
+    const emailNoficationSettings = await this._service.getListItems(this.props.MaterialRequestSettingsList, serverurl);
+    const emailNotificationSetting = emailNoficationSettings.find((item: any) => item.Title === "SendApprovedEmailNotificationToRequestorFromAdmin");
+
+    if (emailNotificationSetting) {
+      const subjectTemplate = emailNotificationSetting.Subject;
+      const bodyTemplate = emailNotificationSetting.Body;
+
+      const replaceSubject = replaceString(subjectTemplate, '[Project]', this.state.project)
+
+      const replaceRequestedBy = replaceString(bodyTemplate, '[RequestedBy]', this.state.RequestedBy)
+      const replaceProject = replaceString(replaceRequestedBy, '[Project]', this.state.project)
+      const replaceApprovedBy = replaceString(replaceProject, '[ApprovedBy]', this.state.ApprovedBy)
+      const replacedate = replaceString(replaceApprovedBy, '[Date]', date)
+
+      const emailPostBody: any = {
+        message: {
+          subject: replaceSubject,
+          body: {
+            contentType: 'HTML',
+            content: replacedate
           },
-        ]
-      },
-    };
-    return context.msGraphClientFactory
-      .getClient('3')
-      .then((client: MSGraphClientV3): void => {
-        client.api('/me/sendMail').post(emailPostBody);
-      });
-
+          toRecipients: [
+            {
+              emailAddress: {
+                address: requestedEmail,
+              },
+            },
+          ]
+        },
+      };
+      return context.msGraphClientFactory
+        .getClient('3')
+        .then((client: MSGraphClientV3): void => {
+          client.api('/me/sendMail').post(emailPostBody);
+        });
+    }
   }
 
-  public async sendRejectEmailNotificationToHOS(context: any): Promise<void> {
+  public async sendRejectEmailNotificationToHOSFromAdmin(context: any): Promise<void> {
     const HOSApproverIdUserInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
     const HOSApproverEmail = HOSApproverIdUserInfo.Email;
-
     const date = moment(new Date).format("DD-MM-YYYY");
 
-    // const requestedBy = await this._service.getUser(this.state.materialRequestData.AuthorId);
-    // const requestedEmail = requestedBy.Email;
+    const serverurl: string = this.props.context.pageContext.web.serverRelativeUrl;
+    const emailNoficationSettings = await this._service.getListItems(this.props.MaterialRequestSettingsList, serverurl);
+    const emailNotificationSetting = emailNoficationSettings.find((item: any) => item.Title === "SendRejectEmailNotificationToHOSFromAdmin");
 
-    // const evaluationURL = 'https://ccsdev01.sharepoint.com/sites/SuggestionBox/SitePages/EvaluationBoard.aspx';
-    const emailPostBody: any = {
-      message: {
-        subject: `Material Request for ${this.state.project}`,
-        body: {
-          contentType: 'HTML',
-          content: `Hi ${HOSApproverIdUserInfo.Title},<br><br>
-          Material request for the ${this.state.project} has been rejected by ${this.state.ApprovedBy} on ${date}.<br><br>
-          `
-        },
-        toRecipients: [
-          {
-            emailAddress: {
-              address: HOSApproverEmail,
-            },
+    if (emailNotificationSetting) {
+      const subjectTemplate = emailNotificationSetting.Subject;
+      const bodyTemplate = emailNotificationSetting.Body;
+
+      const replaceSubject = replaceString(subjectTemplate, '[Project]', this.state.project)
+
+      const replaceHOSApprover = replaceString(bodyTemplate, '[HOSApprover]', HOSApproverIdUserInfo.Title)
+      const replaceProject = replaceString(replaceHOSApprover, '[Project]', this.state.project)
+      const replaceApprovedBy = replaceString(replaceProject, '[ApprovedBy]', this.state.ApprovedBy)
+      const replacedate = replaceString(replaceApprovedBy, '[Date]', date)
+
+
+      const emailPostBody: any = {
+        message: {
+          subject: replaceSubject,
+          body: {
+            contentType: 'HTML',
+            content: replacedate
           },
-        ]
-      },
-    };
-    return context.msGraphClientFactory
-      .getClient('3')
-      .then((client: MSGraphClientV3): void => {
-        client.api('/me/sendMail').post(emailPostBody);
-      });
+          toRecipients: [
+            {
+              emailAddress: {
+                address: HOSApproverEmail,
+              },
+            },
+          ]
+        },
+      };
+      return context.msGraphClientFactory
+        .getClient('3')
+        .then((client: MSGraphClientV3): void => {
+          client.api('/me/sendMail').post(emailPostBody);
+        });
+    }
   }
 
-  public async sendRejectEmailNotificationToRequestor(context: any): Promise<void> {
-    // const HOSApproverIdUserInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
-    // const HOSApproverEmail = HOSApproverIdUserInfo.Email;
-
+  public async sendRejectEmailNotificationToRequestorFromAdmin(context: any): Promise<void> {
     const requestedBy = await this._service.getUser(this.state.materialRequestData.AuthorId);
     const requestedEmail = requestedBy.Email;
-
     const date = moment(new Date).format("DD-MM-YYYY");
 
-    const HOSInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
-    const HOSName = HOSInfo.Title;
+    const serverurl: string = this.props.context.pageContext.web.serverRelativeUrl;
+    const emailNoficationSettings = await this._service.getListItems(this.props.MaterialRequestSettingsList, serverurl);
+    const emailNotificationSetting = emailNoficationSettings.find((item: any) => item.Title === "SendRejectEmailNotificationToRequestorFromAdmin");
 
-    // const evaluationURL = 'https://ccsdev01.sharepoint.com/sites/SuggestionBox/SitePages/EvaluationBoard.aspx';
-    const emailPostBody: any = {
-      message: {
-        subject: `Material Request for ${this.state.project}`,
-        body: {
-          contentType: 'HTML',
-          content: `Hi ${this.state.RequestedBy},<br><br>
-          Material request for the ${this.state.project} has been approved by ${HOSName} on ${date}.<br><br>
-          `
-        },
-        toRecipients: [
-          {
-            emailAddress: {
-              address: requestedEmail,
-            },
+    if (emailNotificationSetting) {
+      const subjectTemplate = emailNotificationSetting.Subject;
+      const bodyTemplate = emailNotificationSetting.Body;
+
+      const replaceSubject = replaceString(subjectTemplate, '[Project]', this.state.project)
+
+      const replaceRequestedBy = replaceString(bodyTemplate, '[RequestedBy]', this.state.RequestedBy)
+      const replaceProject = replaceString(replaceRequestedBy, '[Project]', this.state.project)
+      const replaceApprovedBy = replaceString(replaceProject, '[ApprovedBy]', this.state.ApprovedBy)
+      const replacedate = replaceString(replaceApprovedBy, '[Date]', date)
+
+      // const HOSInfo = await this._service.getUser(this.state.materialRequestData.HOSApproverId);
+      // const HOSName = HOSInfo.Title;
+
+      const emailPostBody: any = {
+        message: {
+          subject: replaceSubject,
+          body: {
+            contentType: 'HTML',
+            content: replacedate
           },
-        ]
-      },
-    };
-    return context.msGraphClientFactory
-      .getClient('3')
-      .then((client: MSGraphClientV3): void => {
-        client.api('/me/sendMail').post(emailPostBody);
-      });
+          toRecipients: [
+            {
+              emailAddress: {
+                address: requestedEmail,
+              },
+            },
+          ]
+        },
+      };
+      return context.msGraphClientFactory
+        .getClient('3')
+        .then((client: MSGraphClientV3): void => {
+          client.api('/me/sendMail').post(emailPostBody);
+        });
+    }
   }
 
 
@@ -348,32 +371,29 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
     const taskListData = await this._service.getItemSelectExpandFilter(
       url,
-      "TasksList",
+      this.props.TasksList,
       "ID, MasterMaterialRequestID/ID",
       "MasterMaterialRequestID",
       `MasterMaterialRequestID/ID eq ${this.state.getItemId}`
     );
-    const taskId = taskListData[0].MasterMaterialRequestID.ID;
+    // const taskId = taskListData[0].MasterMaterialRequestID.ID;
     const taskIdItem = taskListData[0].ID;
-    console.log('taskId: ', taskId);
-    await this._service.deleteItemById(url, "TasksList", taskIdItem);
+    await this._service.deleteItemById(url, this.props.TasksList, taskIdItem);
   }
 
   public async OnClickApprove() {
     await this.setState({ isOkButtonDisabled: true });
     const itemsForUpdate = {
-      Status: "Admin Approved",
+      Status: strings.AdminApproved,
       AdminComments: this.state.comment,
     };
 
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    await this._service.updateEvaluation("MasterMaterialRequestList", itemsForUpdate, this.state.getItemId, url);
+    await this._service.updateEvaluation(this.props.MasterMaterialRequestList, itemsForUpdate, this.state.getItemId, url);
 
     await this.deleteTaskListItem();
-    await this.sendApprovedEmailNotificationToHOS(this.props.context);
-    await this.sendApprovedEmailNotificationToRequestor(this.props.context);
-    // alert("mail send");
-    // this.setState({ successfullStatusMessage: 'Successfully approved' });
+    await this.sendApprovedEmailNotificationToHOSFromAdmin(this.props.context);
+    await this.sendApprovedEmailNotificationToRequestorFromAdmin(this.props.context);
     Toast("success", "Successfully approved!");
     setTimeout(() => {
       window.location.href = url;
@@ -383,20 +403,18 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
   public async OnClickReject() {
     await this.setState({ isOkButtonDisabled: true });
     const itemsForUpdate = {
-      Status: "Admin Rejected",
+      Status: strings.AdminRejected,
       AdminComments: this.state.comment,
     };
 
     const url: string = this.props.context.pageContext.web.serverRelativeUrl;
-    await this._service.updateEvaluation("MasterMaterialRequestList", itemsForUpdate, this.state.getItemId, url);
+    await this._service.updateEvaluation(this.props.MasterMaterialRequestList, itemsForUpdate, this.state.getItemId, url);
 
     await this.deleteTaskListItem();
 
-    await this.sendRejectEmailNotificationToHOS(this.props.context);
-    await this.sendRejectEmailNotificationToRequestor(this.props.context);
+    await this.sendRejectEmailNotificationToHOSFromAdmin(this.props.context);
+    await this.sendRejectEmailNotificationToRequestorFromAdmin(this.props.context);
     Toast("warning", "Rejected");
-    // alert("mail send");
-    // this.setState({ rejectStatusMessage: 'Rejected' });
     setTimeout(() => {
       window.location.href = url;
     }, 3000);
@@ -415,11 +433,6 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
       <section>
         <div className={styles.borderBox}>
           <div>
-            {/* {this.state.noAccessId === "false" &&
-              <div className={styles.statusMessageIdNull}>
-                {this.state.statusMessageTAskIdNull}</div>
-            } */}
-
             {this.state.noAccessId === "false" &&
               <MessageBar
                 messageBarType={MessageBarType.error}
@@ -431,14 +444,7 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
             }
           </div>
 
-
           <div>
-            {/* {this.state.isTaskIdPresent === "false" && this.state.noAccessId === "true" &&
-
-              <div className={styles.statusMessageIdNull}>
-                {this.state.statusMessageTAskIdNull}</div>
-            } */}
-
             {this.state.isTaskIdPresent === "false" && this.state.noAccessId === "true" &&
               <MessageBar
                 messageBarType={MessageBarType.error}
@@ -448,7 +454,6 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
                 {this.state.statusMessageTAskIdNull}
               </MessageBar>
             }
-
           </div>
 
           <div>
@@ -456,8 +461,6 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
               <>
                 <div>
                   <div className={styles.MaterialRequestHeading}>{"Material Request"}</div>
-
-
                   <div className={styles.onediv}>
                     <div className={styles.fieldwrapper}>
                       <div className={styles.fieldlabel}>Requested By</div>
@@ -536,29 +539,18 @@ export default class MaterialRequestAdminApprovalForm extends React.Component<IM
                   <div className={styles.btndiv}>
                     <PrimaryButton
                       text="Approve"
-                      // className={styles.PrimaryButton}
                       onClick={this.OnClickApprove}
                       disabled={this.state.isOkButtonDisabled}
                     />
 
                     <PrimaryButton
                       text="Reject"
-                      // className={styles.PrimaryButton}
                       onClick={this.OnClickReject}
                       disabled={this.state.isOkButtonDisabled}
                     />
 
                   </div>
                 </div>
-
-
-                {/* <div className={styles.successStatusMessage}>
-                  {this.state.successfullStatusMessage && <span>{this.state.successfullStatusMessage}</span>}
-                </div>
-
-                <div className={styles.rejectStatusMessage}>
-                  {this.state.rejectStatusMessage && <span>{this.state.rejectStatusMessage}</span>}
-                </div> */}
               </>
             }
           </div>

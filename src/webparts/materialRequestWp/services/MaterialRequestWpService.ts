@@ -42,4 +42,8 @@ export class MaterialRequestWpService extends BaseService {
         return this._spfi.web.getList(url + "/Lists/" + listname).items.getById(id).update(data);
     }
 
+    public getItemFilter(siteUrl: string, listname: string, filter: string): Promise<any> {
+        return this._spfi.web.getList(siteUrl + "/Lists/" + listname).items
+            .filter(filter)();
+    }
 }

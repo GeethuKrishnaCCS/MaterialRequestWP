@@ -7,6 +7,17 @@ export interface IMaterialRequestAdminApprovalFormProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   context: WebPartContext;
+
+  AdminApprover : string;
+  ClientList : string;
+  Departments : string;
+  MasterMaterialRequestList : string;
+  MaterialItemsList : string;
+  MaterialsMasterList : string;
+  ProgramList : string;
+  ProjectList : string;
+  TasksList : string;
+  MaterialRequestSettingsList : string;
 }
 
 
